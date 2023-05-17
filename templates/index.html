@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <title>BRACU Admission Seat Status</title>
+<style>
+  body {
+    background-color: #FFA07A; /* change to your desired color */
+  }
+  .classic-button {
+      background-color: #f8f8f8;
+      border: 1px solid #ccc;
+      color: #333;
+      padding: 10px 20px;
+      font-size: 16px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+
+    .classic-button:hover {
+      background-color: #e0e0e0;
+     .container {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+
+
+</style>
+
+  </head>
+  <body>
+    <h1>BRACU Admission Seat Status Checker</h1>
+    <form method="post">
+      <label for="course"></label>
+      <input type="text" id="course" name="course" placeholder="course code">
+      <br>
+      <label for="section"></label>
+      <input type="text" id="section" name="section" placeholder="Enter section eg: 0?">
+      <br>
+      <label for="faculty"></label>
+      <input type="text" id="faculty" name="faculty" placeholder="Enter faculty initial">
+      <button type="submit">Check Seat Status</button>
+    </form>
+
+    <br>
+    <div >
+      <h2>Seat Status</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Times</th>
+            <th>Course</th>
+            <th>Faculty</th>
+            <th>Section</th>
+            <th>Available Seats</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td id="course_code"></td>
+            <td id="faculty_initial"></td>
+            <td id="section_code"></td>
+            <td id="available_seats"></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <br>
+
+    <br>
+    <button id="stop_button" onclick="stopRefresh()" class="classic-button">Stop</button>
+
+<script>
+  let updateCount = 0;
+  let intervalId;
+
+  const form = document.querySelector("form");
+  form.addEventListener("submit", (event) => {
+    event.preventDefault();
+    clearInterval(intervalId);
+    updateCount = 0;
+    intervalId = setInterval(fetchSeatStatus, 15000);
+    fetchSeatStatus();
+  });
+
+  function fetchSeatStatus() {
+    updateCount += 1;
+    const data = new FormData(form);
+    fetch("/", {
+      method: "POST",
+      body: data,
+    })
+    .then(response => response.json())
+    .then(data => {
+      const seatStatus = data.seat_status;
+      const [courseCode, facultyInitial, sectionCode, availableSeats] = seatStatus;
+
+      const table = document.querySelector("table");
+      const tbody = table.querySelector("tbody");
+
+      const newRow = document.createElement("tr");
+      if (updateCount % 2 === 0) {
+        newRow.style.backgroundColor = "lightblue";
+      }
+
+      const countCell = document.createElement("td");
+      countCell.textContent = updateCount;
+      const courseCell = document.createElement("td");
+      courseCell.textContent = courseCode;
+      const facultyCell = document.createElement("td");
+      facultyCell.textContent = facultyInitial;
+      const sectionCell = document.createElement("td");
+      sectionCell.textContent = sectionCode;
+      const seatsCell = document.createElement("td");
+      seatsCell.textContent = availableSeats;
+
+      newRow.appendChild(countCell);
+      newRow.appendChild(courseCell);
+      newRow.appendChild(facultyCell);
+      newRow.appendChild(sectionCell);
+      newRow.appendChild(seatsCell);
+
+      tbody.appendChild(newRow);
+    })
+    .catch(error => console.error(error));
+  }
+
+  function stopRefresh() {
+    clearInterval(intervalId);
+    document.getElementById("stop_button").disabled = true;
+  }
+</script>
+
+
+  </body>
+</html>
